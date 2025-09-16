@@ -1,5 +1,5 @@
 "use client"
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -18,15 +18,22 @@ type MoodEntry = { date: string; score: number }
 export default function HealthPage() {
   const [mood, setMood] = useState<number | null>(null)
   const [entries, setEntries] = useState<MoodEntry[]>([])
+  useEffect(() => {
+    fetch('/api/mood').then(r => r.json()).then(setEntries).catch(()=>{})
+  }, [])
 
-  function addEntry() {
+  async function addEntry() {
     if (mood === null) return
     const today = new Date().toISOString().slice(0, 10)
-    setEntries(prev => {
-      const filtered = prev.filter(e => e.date !== today)
-      return [...filtered, { date: today, score: mood }].sort((a,b) => a.date.localeCompare(b.date))
-    })
-    setMood(null)
+    const res = await fetch('/api/mood', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ score: mood, dateKey: today }) })
+    if (res.ok) {
+      const created = await res.json()
+      setEntries(prev => {
+        const filtered = prev.filter(e => e.date !== created.date)
+        return [...filtered, { date: created.date, score: created.score }].sort((a,b) => a.date.localeCompare(b.date))
+      })
+      setMood(null)
+    }
   }
 
   const chartData = useMemo(() => {
@@ -64,6 +71,7 @@ export default function HealthPage() {
       <div className="card p-6">
         <h3 className="mb-2 font-semibold">Auto Report</h3>
         <p className="text-sm text-gray-700">{entries.length === 0 ? 'No data yet.' : `You logged ${entries.length} day(s). Average mood: ${ (entries.reduce((a,b)=>a+b.score,0)/entries.length).toFixed(1) }.`}</p>
+        <a href="/api/report/pdf" target="_blank" className="mt-3 inline-block rounded-md border px-4 py-2 text-sm">Open PDF report</a>
       </div>
     </div>
   )

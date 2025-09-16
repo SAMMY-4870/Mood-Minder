@@ -10,13 +10,19 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!firstName || !lastName || !email || !username || !password) {
       setError('Please fill all fields')
       return
     }
-    window.location.href = '/dashboard'
+    try {
+      const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ firstName, lastName, email, username, password }) })
+      if (!res.ok) throw new Error((await res.json()).error || 'Registration failed')
+      window.location.href = '/auth/login'
+    } catch (err: any) {
+      setError(err.message)
+    }
   }
 
   return (

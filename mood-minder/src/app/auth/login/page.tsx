@@ -10,12 +10,18 @@ export default function LoginPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    // Placeholder: Accept any non-empty input for now
     if (!identifier || !password) {
       setError('Please enter your username/email and password')
       return
     }
-    window.location.href = '/dashboard'
+    try {
+      const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier, password }) })
+      if (!res.ok) throw new Error((await res.json()).error || 'Login failed')
+      const next = new URLSearchParams(window.location.search).get('next') || '/dashboard'
+      window.location.href = next
+    } catch (err: any) {
+      setError(err.message)
+    }
   }
 
   return (

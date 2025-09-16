@@ -15,7 +15,7 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname()
   return (
-    <aside className="h-full w-56 border-r bg-white p-4">
+    <aside className="flex h-full w-56 flex-col border-r bg-white p-4">
       <h1 className="mb-6 text-xl font-bold text-brand">Mood Minder</h1>
       <nav className="space-y-2">
         {navItems.map(item => {
@@ -27,6 +27,14 @@ export function Sidebar() {
           )
         })}
       </nav>
+      <div className="mt-auto pt-4">
+        <button
+          onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); window.location.href = '/' }}
+          className="w-full rounded-md border px-3 py-2 text-left text-sm hover:bg-gray-50"
+        >
+          Logout
+        </button>
+      </div>
     </aside>
   )
 }
